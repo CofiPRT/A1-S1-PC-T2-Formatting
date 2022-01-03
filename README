@@ -1,0 +1,311 @@
+--- PROGRAMAREA CALCULATOARELOR ---
+--- TEMA 1 - Formatare Text ---
+
+Cuprins:
+
+	0. Legenda..........................................Linia 22
+	1. Biblioteci.......................................Linia 30
+	2. Modularizare.....................................Linia 40
+		2.1. Fisierul "accessories.h"...................Linia 38
+		2.2. Fisierul "support_functions.h".............Linia 108
+		2.3. Fisierul "validation_functions.h"..........Linia 159
+		2.4. Fisierul "primary_functions.h".............Linia 186
+		2.5. Sursa "tema2.c"............................Linia 272
+	3. Coduri de eroare.................................Linia 296
+	4. Alte detalii.....................................Linia 305
+
+--- ---------- ---
+--- 0. Legenda ---
+--- ---------- ---
+	- In acest README, o referinta  "(Linia #)" se refera strict la
+	linia # a acestui fisier README, nu a altui fisier (precum sursa).
+	- In acest program, o functie returneaza un numar negativ in momentul in
+	care intampina o eroare (Linia 265)
+
+--- ------------- ---
+--- 1. BIBLIOTECI ---
+--- ------------- ---
+
+Folosesc:
+	<stdio.h> pentru familiile de functii 'print' si 'scan'
+	<string.h> pentru manipularea sirurilor de caractere
+	<ctype.h> in principiu doar pentru functia 'isdigit'
+	<stdlib.h> in principiu doar pentru functia 'atoi'
+
+--- ----------------------------- ---
+--- 2.1. Fisierul "accessories.h" ---
+--- ----------------------------- ---
+
+Acest fisier contine functii "accesorii": functii mici ce au un scop destul de
+simplu si sunt folosite de mai multe ori.
+
+Variabila defined MAXCHARS se foloseste pentru declaratiile de string-uri in
+tot programul
+
+2.1.1. Functia 'line_start'
+	- Returneaza prima pozitie a unui string cu proprietatea ca toate
+	caracterele de dinaintea pozitiei sunt caractere WHITESPACE ' ' sau
+	TAB '\t'.
+	- Totodata, se poate considera ca se returneaza numarul acestor caractere
+	(definitie echivalenta a acestei functii).
+
+2.1.2. Functia 'isnumber'
+	- Foloseste functia 'isdigit' din <ctype.h> pe toate caracterele unui
+	string pentru a stabili daca string-ul reprezinta sau nu un numar.
+
+2.1.3. Functia 'check_limits'
+	- Folosit de obicei dupa o functie de validare (Linia 159)
+	- Se asigura ca argumentele 'start_line' si 'end_line' (din functii precum
+	Align Left, Align Right, Center etc.) nu ies din document si sunt valide
+	(nu se poate incepe de la un 'start_line' mai mare decat 'end_line').
+
+2.1.4. Functia 'shift_left'
+	- 'Shift-eaza' un anumit string cu un numar 'number' de pasi. Prin
+	shift-area cu un pas, se intelege eliminarea primului caracter daca acesta
+	este un WHITESPACE ' ' sau TAB '\t'.
+	- Daca primul caracter nu este unul dintre acestea, nu mai are rost sa
+	continuam, iar functia se opreste.
+
+2.1.5. Functia 'shift_right'
+	- In cazul in care string-ul este un simplu NEWLINE '\n', functia nu
+	continua, deoarece nu avem de ce sa modificam string-ul.
+	- Se incepe prin generarea unui string ce contine un numar 'number' de
+	WHITESPACEs ' ', dupa care se concateneaza string-ul initial la acesta nou
+	format si se salveaza.
+
+2.1.6. Functia 'is_list_type'
+	- Folosita in functiile 'list_validation' si
+	'ordered_list_validation' (Linia 159)
+	- Conform cerintei, indecsii listei pot fi de 3 tipuri: numere, litere mari
+	sau mici sau buline, toate avand cate un caracter specific, 'n', 'a', 'A'
+	respectiv 'b'. Functia se asigura ca primeste ca argument unul dintre
+	aceste caractere. (Returnand 1 in caz afirmativ, respectiv 0 in caz
+	contrar).
+
+2.1.7. Functia 'is_ordering_type'
+	- Folosita in functia 'ordered_list_validation' (Linia 159)
+	- Se asigura ca primeste ca argument doar unul dintre 'a' si 'z', returnand
+	1 in caz afirmativ, respectiv 0 in caz contrar.
+
+2.1.8. Functia 'swap_strings'
+	- Primeste ca argumente doua string-uri pe care le schimba intre ele cat
+	mai simplu posibil
+
+2.1.9. Functia 'trailing'
+	- Primeste ca argument un string si incepe sa caute, de la finalul
+	acestuia, primul caracter care este urmat doar de WHITESPACEs ' '. Cand
+	gaseste un asemenea caracter (sau a ajuns la inceputul string-ului),
+	'termina' string-ul in acel punct prin succesiunea de caractere '\n\0'.
+
+2.1.10. Functia 'cp_text'
+	- Copiaza o intreaga matrice in alta matrice
+
+--- ----------------------------------- ---
+--- 2.2. Fisierul "support_functions.h" ---
+--- ----------------------------------- ---
+
+Acest fisier contine functii "suport", fara de care functiile
+primare (Linia 186) nu pot fi realizate, dar continutul lor au un scop destul
+de unic fata de restul functiei primare.
+
+2.2.1. Functia 'split'
+	- Folosita in functia 'push_words' (implicit si in 'wrap_text' - Linia 209)
+	- 'split' "taie" primul string in pozitia indicata de argumentul
+	'characters' si pastreaza prima parte in primul string si trimite a doua
+	parte la inceputul celui de-al doilea string (avand grija totodata de
+	caracterele special NEWLINE '\n' si NULL '\0')
+
+2.2.2. Functia 'push_words'
+	- Folosita in functia 'wrap_text' (Linia 209)
+	- Se "impinge" tot textul (de sub linia curenta) in jos, pregatindu-l
+	pentru 'split'
+	- In functie de argumentul 'max_line_length', functia decide unde trebuie
+	sa aplice 'split' in cadrul unui string mai lung decat 'max_line_length',
+	anume primul spatiu din stanga pozitiei 'max_line_length'. In cazul in care
+	nu a fost gasit un astfel de spatiu, inseamna ca insusi cuvantul este mai
+	lung decat 'max_line_length', caz in care nu se poate face operatia de
+	'wrap_text', rezultand eroare '-2' (Linia 301)
+
+2.2.3. Functia 'justify_line'
+	- Folosita in functia 'justify' (Linia 244)
+	- Se adauga pe rand cate un spatiu langa fiecare spatiu ("sarind" de la
+	unul la altul) pana cand string-ul are lungimea dorita 'max'
+	- Cand se adauga un spatiu intr-o pozitie 'curr_char' a string-ului, se
+	concateneaza in ordine prima parte a string-ului cu noul spatiu si cu a 
+	doua parte a string-ului
+	- In cazul in care s-a ajuns la ultimul spatiu al string-ului si inca nu
+	are lungimea dorita, pasii se repeta
+
+2.2.4. Functia 'order_strings'
+	- Folosita in functia 'ordered_list' (Linia 263)
+	- Ordoneaza alfabetic, folosind tehnica 'bubble sort', toate string-urile
+	din intervalul 'start_line'-'end_line'
+	- In cazul in care se doreste ordonarea invers alfabetica a acestor
+	string-uri, se inverseaza string-urile din acel interval
+
+2.2.5. Functia 'list_line'
+	- Se formeaza un nou string 'aux' in care se aplica operatiile necesare
+	pentru a se realiza lista dorita: se adauga index-ul corespunzator si/sau
+	caracterul special (non-bullet list/bullet list), un spatiu si string-ul
+	initial, dupa care se salveaza in acesta
+	- Se incrementeaza variabila 'index' pentru viitoarele folosiri ale acestei
+	functii
+
+--- -------------------------------------- ---
+--- 2.3. Fisierul "validation_functions.h" ---
+--- -------------------------------------- ---
+
+Acest fisier contine functii ce valideaza argumentele primite de functiile
+primare (Linia 186). In functie de numarul de argumente si de tipul acestora, o
+functie de validare se poate folosi intr-una sau in mai multe functii primare.
+
+Toate functiile de validare au acelasi principiu:
+	- Daca e nevoie, se initializeaza variabile default (precum 'start_line' si
+	'end_line')
+	- Se imparte operatia in argumente (parametri)
+	- In functie de parametrul ASTEPTAT, se decide daca se lucreaza la un
+	moment dat cu un parametru valid. De exemplu, daca se asteapta parametrul
+	'start_line' dar nu mai sunt parametri in operatie, se foloseste valoarea
+	DEFAULT respectiva. Cu toate acestea, daca mai este un parametru ce poate
+	fi 'start_line' in operatie, se testeaza validitatea acestuia (daca este un
+	numar, in acest exemplu).
+	- In cazul in care se asteapta un argument obligatoriu (precum
+	'max_line_length' in 'wrap') dar nu mai sunt parametri in operatie,
+	operatia este invalida, deci se returneaza -1 (Linia 299)
+	- Se returneaza -1 si in cazul in care un argument primit nu este tipul
+	potrivit (precum 'max_line_length' sa fie un caracter si nu un numar).
+	- In unele functii de validare, transmiterea argumentelor in si din functie
+	se face printr-un vector de marime #, unde # reprezinta numarul
+	argumentelor (pentru a evita utilizarea a # variabile in antetul functiei)
+
+--- ----------------------------------- ---
+--- 2.4. Fisierul "primary_functions.h" ---
+--- ----------------------------------- ---
+
+Acest fisier contine toate operatiile posibile, fiecare operatie avand o
+singura functie drept corespondent.
+
+Fiecare functie apeleaza o functie de validare corespunzatoare la inceputul ei
+si, eventual, declara un vector pentru functia de validare
+	- 'wrap_text' cu 'wrap_validation'
+	- 'center_text', 'align_left', 'align_right' si 'justify' cu 'validation'
+	- 'paragraph' cu 'paragraph_validation'
+	- 'list' cu 'list_validation'
+	- 'ordered_list' cu 'ordered_list_validation'
+
+Dupa functia de validare, se testeaza, daca e cazul, daca variabilele
+'start_line' si 'end_line' sunt si ele valide (cu functia 'checK-limits', care
+poate fi si ea considerata functie de validare).
+
+Daca pana acum totul este valid, se salveaza variabilele pentru a fi utilizate
+in operatie.
+
+Detalii specifice fiecarei functie:
+
+2.4.1. Functia 'wrap_text'
+	- Se decide daca linia curenta trebuie sa primeasca sau sa dea cuvinte in
+	sau din ea, dupa care se aplica operatiile corespunzatoare
+	* - In cazul in care trebuie sa primeasca, daca urmatoarea linie este o
+	linie goala (sau doar un NEWLINE '\n'), nu are de unde sa primeasca
+	cuvinte, deci se trece la urmatoarea linie de dupa cea goala.
+	- Daca are de unde primi cuvinte, se inlocuieste NEWLINE-ul '\n' din linia
+	curenta cu un spatiu, pentru a facilita concatenarea acesteia cu linia
+	urmatoare, dupa care se "trag" toate liniile de mai jos in sus
+	(reducandu-se astfel numarul de linii cu 1).
+	- In cazul in care s-au primit cuvinte, se testeaza din nou linia pentru a
+	ne asigura ca nu trebuie sa se dea cuvinte
+
+	* - In cazul in care trebuie sa dea cuvinte, se apeleaza functia
+	'push_words' (Linia 122) pentru linia curenta 'i'
+
+2.4.2. Functia 'center_text'
+	- Se calculeaza numarul de caractere din cea mai lunga linie, in variabila
+	'max'
+	- Se apeleaza functia 'shift_right' pentru fiecare linie din intervalul
+	'start_line'-'end_line' cu o formula specifica (pentru a "shift-a" spre
+	dreapta doar de cate ori are nevoie linia respectiva pentru a se centra)
+
+2.4.3. Functia 'align_left'
+	- Se apeleaza functia 'shift_left' pentru fiecare linie din intervalul
+	'start_line'-'end_line'
+
+2.4.4. Functia 'align_right'
+	- Se calculeaza numarul de caractere din cea mai lunga linie, in
+	variabila 'max'
+	- Se apeleaza functia 'shift_right' pentru fiecare linie din intervalul
+	'start_line'-'end_line' cu o formula specifica (pentru a "shift-a" spre
+	dreapta doar de cate ori are nevoie linia respectiva pentru a se alinia
+	la dreapta)
+
+2.4.5. Functia 'justify'
+	- Se calculeaza numarul de caractere din cea mai lunga linie, in variabila
+	'max'
+	- Fiecare linie din intervalul 'start_line'-'end_line' se shifteaza la
+	stanga cu functia 'shift_left'
+	- Daca linia curenta nu este sfarsitul unui paragraf (sau de document), se
+	apeleaza functia 'justify_line' pe linia respectiva
+
+2.4.6. Functia 'paragraph'
+	- Pentru fiecare linie din intervalul 'start_line'-'end_line', daca linia
+	precedenta este un simplu NEWLINE '\n' (sau este inceput de document), se
+	apeleaza functia 'shift_right' cu argumentele aferente
+
+2.4.7. Functia 'list'
+	- Pentru fiecare linie din intervalul 'start_line'-'end_line', se apeleaza
+	functia 'shift_left' pentru a se alinia la stanga, dupa care se aplica
+	operatiile necesare pentru a adauga index de lista liniei, prin apel la
+	functia 'list_line'
+
+2.4.8. Functia 'ordered_list'
+	- Aproape identica cu functia 'list', doar ca se face apel la functia
+	'order_strings' inainte de aplica operatiile necesare
+
+Toate "codurile de eroare" (numerele negative returnate de functiile de tip
+int) se transmit de la functie la functie pana se ajunge la functia
+'apply' (Linia 279)
+
+--- -------------------- ---
+--- 2.5. Sursa "tema2.c" ---
+--- -------------------- ---
+
+2.5.1. Functia 'find_operation'
+	- Se decide, pe cat se poate de simplu (printr-un switch) ce functie sa se
+	apeleze, pastrand codul ei de eroare daca e cazul
+
+2.5.2. Functia 'apply'
+	- Aceasta functie pregateste tot programul pentru executie
+	- Se elimina de la bun inceput TARILING WHITESPACES prin functia 'trailing'
+	aplicata pe fiecare linie
+	- Se copiaza intr-un vector de string-uri si se testeaza validitatea
+	fiecarei operatii (mai putin de 20 de caractere - MAXOPCHAR)
+	- Se copiaza doar primele 10 (MAXOPNUM) operatii si se anunta acest lucru.
+	- Se aplica fiecare operatie salvata (fiecare cod de eroare se termina aici
+	si se decide ce se va intampla - Linia )
+	- Dupa fiecare operatie se aplica functia 'trailing'
+
+2.5.3. Functia 'main'
+	- In mijlocul scheletului de cod primit, se copiaza intr-un backup textul
+	original, in cazul in care la functia 'apply' (apelata imediat ulterior) a
+	ajuns un cod de eroare.
+
+--- ------------------- ---
+--- 3. Coduri de eroare ---
+--- ------------------- ---
+
+	- Codul -1 este strict pentru operatii invalide, "spunandu-i" lui 'apply'
+	sa afiseze mesajul "Invalid operation!"
+	- Codul -2 este folosit doar pentru operatia 'wrap' in cazul in care nu se
+	poate aplica datorita lungimii cuvintelor, afisand mesajul "Cannot wrap!"
+
+--- --------------- ---
+--- 4. Alte detalii ---
+--- --------------- ---
+
+	- Comentarea codului a fost de la bun inceput in engleza (scheletul de cod)
+	si am decis sa fie pastrata asa.
+	- Am preferat sa modularizez cat mai mult codul pentru a nu lasa confuzii
+	cu privire la utilizarea unor secvente de cod (precum o simpla instructiune
+	'for' care nu incepe ceva cu totul nou - de exemplu, functia 'cp_text')
+	- In ceea ce priveste coding style-ul, chiar prefer deschiderea de acolade
+	pe o linie noua (in speranta ca nu va afecta prea mult coding style-ul
+	'overall').

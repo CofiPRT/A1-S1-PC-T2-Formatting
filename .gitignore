@@ -1,0 +1,8 @@
+
+exec
+format_text
+input.txt
+output.txt
+reference.txt
+tema2.o
+test.c
